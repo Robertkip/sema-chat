@@ -6,6 +6,9 @@ const SCREENS = [
   { href: "/history", name: "History", note: "Past conversations", ships: "FE-07" },
   { href: "/settings", name: "Settings", note: "Model and account preferences", ships: "FE-04 ✓" },
   { href: "/health", name: "Health", note: "Runtime and dependency status", ships: "FE-05 ✓" },
+  { href: "/scene", name: "3D scene", note: "Interactive wave field", ships: "FE-3D ✓" },
+  { href: "/motion", name: "Motion", note: "Buttons with a brain", ships: "FE-M ✓" },
+  { href: "/playground", name: "Playground", note: "Accessible components", ships: "FE-03 ✓" },
 ];
 
 export default function Home() {

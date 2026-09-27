@@ -66,6 +66,75 @@ MIT — see [LICENSE](LICENSE).
 
 
 
+
+## 3D scene
+
+[`/scene`](https://sema-chat-pi.vercel.app/scene) · source in [`app/scene/`](app/scene)
+
+A field of 1,024 instanced boxes whose heights follow a travelling sine wave,
+displaced by a bump that tracks the pointer. A configurator changes colour,
+metalness, roughness, wireframe, auto-rotate and density live. Drag to orbit,
+scroll or pinch to zoom.
+
+![The wave field](docs/scene.png)
+
+### Perf note
+
+**Nothing is downloaded to draw it.** The geometry is procedural, so the scene
+ships zero bytes of model data. The only weight is the renderer, and that is
+kept off every other page:
+
+| Measurement | Value |
+|---|---|
+| three + fiber + drei chunk | **265 KB gz**, isolated in one chunk |
+| Routes referencing it in initial HTML | **0** — including `/scene` itself |
+| `/scene` initial JS | **177 KB gz** — *smaller than* `/chat` at 270 KB gz |
+| External network requests while running | **0** |
+| Draw calls for 1,024 boxes | **1** |
+
+`/scene` is lighter than the chat page because the renderer only downloads when
+you press **Start the 3D scene**. Someone who scrolls past pays nothing.
+
+Three things earned their place:
+
+- **Instancing.** 1,024 separate meshes would be 1,024 draw calls a frame and a
+  warm phone. One `InstancedMesh` is one call; per-instance transforms go into
+  a single matrix buffer.
+- **DPR capped at 1.5.** A 3× device would otherwise render nine times the
+  pixels for no visible gain at this geometry density. `<AdaptiveDpr>` drops it
+  further if frames start slipping.
+- **No `<Environment preset>`.** It looks better, but it fetches a
+  multi-megabyte HDR from `raw.githack.com` at runtime — a third-party
+  availability dependency, in a scene whose whole premise is that it downloads
+  nothing. Replaced with a local three-point light rig. Verified: zero external
+  requests.
+
+Grid positions are computed once rather than per frame, and the pointer bump
+uses squared distance where the square root is not needed.
+
+**On frame rate: I could not measure it honestly.** The only browser available
+here is headless Chrome on a GPU-less box, so it software-renders through
+SwiftShader and reports ~11 fps. That number says nothing about real hardware
+and I am not going to dress it up as if it did. What *is* verified above is
+draw-call count, bundle isolation and request count. Frame rate on a real
+device needs a real device.
+
+### Responsible loading
+
+- Canvas is `dynamic(..., { ssr: false })`, behind an explicit start button.
+- `prefers-reduced-motion` → the static SVG poster, never the canvas. A
+  continuously animating field is precisely what that setting exists to stop.
+- No WebGL → the same poster, with a different explanation.
+- The poster is inline SVG: no request, and identical offline.
+
+### With more time
+
+Swap the per-frame JS matrix loop for a vertex shader so the wave is computed
+on the GPU, which would make density essentially free. Add a `<Detailed>` LOD
+so distant instances drop to a cheaper material. Pause the render loop when the
+canvas scrolls out of view — right now it keeps animating, which is wasted work
+on a long page.
+
 ## Testing
 
 ```bash
