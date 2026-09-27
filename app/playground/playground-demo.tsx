@@ -19,7 +19,7 @@ export function PlaygroundDemo() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="rounded-control bg-accent px-4 py-2 text-sm text-accent-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="rounded-control bg-brand px-4 py-2 text-sm text-brand-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           Open dialog
         </button>

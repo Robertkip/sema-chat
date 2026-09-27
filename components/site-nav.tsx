@@ -19,7 +19,7 @@ export function SiteNav() {
       <div className="mx-auto flex max-w-4xl items-center gap-0.5 overflow-x-auto px-2 py-2 sm:gap-1 sm:px-4">
         <Link
           href="/"
-          className="mr-1 shrink-0 rounded-control px-1.5 py-1 text-sm font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:mr-2 sm:px-2 sm:text-base"
+          className="mr-1 shrink-0 rounded-control px-1.5 py-1 text-sm font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:mr-2 sm:px-2 sm:text-base"
         >
           Sema
         </Link>
@@ -34,9 +34,9 @@ export function SiteNav() {
                   aria-current={active ? "page" : undefined}
                   className={[
                     "block shrink-0 rounded-control px-2 py-1.5 text-xs transition-colors sm:px-3 sm:text-sm",
-                    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+                    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
                     active
-                      ? "bg-accent text-accent-ink"
+                      ? "bg-brand text-brand-ink"
                       : "text-ink-muted hover:bg-surface-sunken hover:text-ink",
                   ].join(" ")}
                 >

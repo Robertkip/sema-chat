@@ -64,7 +64,7 @@ export function SceneClient() {
             <button
               type="button"
               onClick={() => setStarted(true)}
-              className="absolute inset-x-0 bottom-6 mx-auto w-fit rounded-control bg-accent px-5 py-2.5 text-sm font-medium text-accent-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="absolute inset-x-0 bottom-6 mx-auto w-fit rounded-control bg-brand px-5 py-2.5 text-sm font-medium text-brand-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               Start the 3D scene
             </button>
@@ -122,7 +122,7 @@ export function SceneClient() {
         <button
           type="button"
           onClick={() => setSettings(DEFAULTS)}
-          className="mt-1 rounded-control border border-line px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="mt-1 rounded-control border border-line px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           Reset
         </button>
@@ -175,7 +175,7 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-[var(--accent)]"
+        className="w-full accent-[var(--brand)]"
       />
     </label>
   );

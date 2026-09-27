@@ -100,7 +100,7 @@ export function StatefulButton({
 
   const base =
     variant === "primary"
-      ? "bg-accent text-accent-ink"
+      ? "bg-brand text-brand-ink"
       : "border border-line bg-surface-raised text-ink";
 
   const tone = {
@@ -121,7 +121,7 @@ export function StatefulButton({
         "group relative isolate inline-flex items-center justify-center overflow-hidden",
         "rounded-control px-5 py-2.5 text-sm font-medium",
         "transition-[background-color,color,box-shadow] duration-200 ease-out",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
         "disabled:cursor-not-allowed disabled:opacity-50",
         // hover and press are transform-only, so they cost nothing in layout
         "motion-safe:hover:-translate-y-px motion-safe:active:translate-y-0 motion-safe:active:scale-[0.97]",

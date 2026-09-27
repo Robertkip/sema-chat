@@ -86,7 +86,7 @@ export default async function HealthPage() {
         Machine-readable status:{" "}
         <a
           href="/api/health"
-          className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           /api/health
         </a>

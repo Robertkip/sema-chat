@@ -123,7 +123,7 @@ export function Chat() {
                         setInput(s);
                         inputRef.current?.focus();
                       }}
-                      className="w-full rounded-control border border-line bg-surface-raised px-3 py-2 text-left text-sm transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      className="w-full rounded-control border border-line bg-surface-raised px-3 py-2 text-left text-sm transition-colors hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                     >
                       {s}
                     </button>
@@ -146,7 +146,7 @@ export function Chat() {
                     className={[
                       "max-w-[85%] rounded-panel px-4 py-3 text-sm leading-relaxed sm:max-w-[75%]",
                       isUser
-                        ? "bg-accent text-accent-ink"
+                        ? "bg-brand text-brand-ink"
                         : "border border-line bg-surface-raised",
                     ].join(" ")}
                   >
@@ -235,7 +235,7 @@ export function Chat() {
           <button
             type="button"
             onClick={() => scrollToBottom()}
-            className="pointer-events-auto absolute -top-12 left-1/2 -translate-x-1/2 rounded-full border border-line bg-surface-raised px-4 py-2 text-xs shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="pointer-events-auto absolute -top-12 left-1/2 -translate-x-1/2 rounded-full border border-line bg-surface-raised px-4 py-2 text-xs shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             Jump to latest ↓
           </button>
@@ -255,13 +255,13 @@ export function Chat() {
             placeholder="Message Sema…"
             autoComplete="off"
             enterKeyHint="send"
-            className="min-w-0 flex-1 rounded-control border border-line bg-surface-raised px-3 py-2.5 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="min-w-0 flex-1 rounded-control border border-line bg-surface-raised px-3 py-2.5 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           />
           {busy ? (
             <button
               type="button"
               onClick={() => stop()}
-              className="shrink-0 rounded-control border border-line px-4 py-2.5 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="shrink-0 rounded-control border border-line px-4 py-2.5 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               Stop
             </button>
@@ -269,7 +269,7 @@ export function Chat() {
             <button
               type="submit"
               disabled={input.trim().length === 0}
-              className="shrink-0 rounded-control bg-accent px-4 py-2.5 text-sm font-medium text-accent-ink disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="shrink-0 rounded-control bg-brand px-4 py-2.5 text-sm font-medium text-brand-ink disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               Send
             </button>

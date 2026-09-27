@@ -22,7 +22,7 @@ export default function Home() {
           <li key={s.href}>
             <Link
               href={s.href}
-              className="block h-full rounded-panel border border-line bg-surface-raised p-5 transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="block h-full rounded-panel border border-line bg-surface-raised p-5 transition-colors hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               <span className="font-medium">{s.name}</span>
               <span className="mt-1 block text-sm text-ink-muted">{s.note}</span>

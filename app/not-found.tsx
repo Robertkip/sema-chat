@@ -6,7 +6,7 @@ export default function NotFound() {
     <PageShell title="Page not found" lede="That screen does not exist.">
       <Link
         href="/"
-        className="inline-block rounded-control bg-accent px-4 py-2 text-accent-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className="inline-block rounded-control bg-brand px-4 py-2 text-brand-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         Back to home
       </Link>

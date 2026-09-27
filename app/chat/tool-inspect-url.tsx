@@ -29,7 +29,7 @@ function Shell({
 }) {
   const border = {
     pending: "border-line",
-    active: "border-accent/50",
+    active: "border-brand/50",
     done: "border-line",
     error: "border-danger/50",
   }[tone];
@@ -47,7 +47,7 @@ function Header({
 }) {
   const dot = {
     pending: "bg-ink-muted/40",
-    active: "bg-accent animate-pulse",
+    active: "bg-brand animate-pulse",
     done: "bg-success",
     error: "bg-danger",
   }[tone];
@@ -89,7 +89,7 @@ export function ToolInputAvailable({ url }: { url: string }) {
       <div className="px-3 py-3">
         <p className="truncate font-mono text-xs">{url}</p>
         <div className="mt-3 h-1 overflow-hidden rounded bg-surface-sunken">
-          <div className="h-full w-1/3 animate-indeterminate rounded bg-accent" />
+          <div className="h-full w-1/3 animate-indeterminate rounded bg-brand" />
         </div>
       </div>
     </Shell>
@@ -174,7 +174,7 @@ export function ToolOutputAvailable({ result }: { result: InspectResult }) {
 function ScoreRing({ score }: { score: number }) {
   const r = 22;
   const c = 2 * Math.PI * r;
-  const tone = score >= 80 ? "text-success" : score >= 50 ? "text-accent" : "text-danger";
+  const tone = score >= 80 ? "text-success" : score >= 50 ? "text-brand" : "text-danger";
   return (
     <svg
       viewBox="0 0 56 56"
