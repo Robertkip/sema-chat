@@ -34,7 +34,7 @@ export function SceneFallback({ reason }: { reason: "reduced-motion" | "no-webgl
         })}
         <line x1="0" y1="150" x2="320" y2="150" stroke="#262a30" strokeWidth="1" />
       </svg>
-      <p className="max-w-sm text-center text-xs text-ink-muted">{message}</p>
+      <p className="max-w-sm text-center text-xs text-[#9aa0ad]">{message}</p>
     </div>
   );
 }
