@@ -4,7 +4,45 @@ import { useState, type FormEvent } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { StreamingMarkdown } from "./streaming-markdown";
+import {
+  ToolInputAvailable,
+  ToolInputStreaming,
+  ToolOutputAvailable,
+  ToolOutputError,
+} from "./tool-inspect-url";
+import type { InspectResult } from "@/lib/tools/inspect-url";
 import { useStickToBottom } from "./use-stick-to-bottom";
+
+/**
+ * Render one `inspectUrl` tool part. The AI SDK types the part by tool name
+ * (`tool-inspectUrl`) and carries the lifecycle in `state`, so this is an
+ * exhaustive switch over the four states rather than a truthiness ladder.
+ */
+function ToolPart({ part }: { part: Extract<UIMessage["parts"][number], { type: string }> }) {
+  if (part.type !== "tool-inspectUrl") return null;
+  const p = part as {
+    state: "input-streaming" | "input-available" | "output-available" | "output-error";
+    input?: { url?: string };
+    output?: InspectResult;
+    errorText?: string;
+  };
+
+  switch (p.state) {
+    case "input-streaming":
+      return <ToolInputStreaming url={p.input?.url} />;
+    case "input-available":
+      return <ToolInputAvailable url={p.input?.url ?? ""} />;
+    case "output-available":
+      return p.output ? <ToolOutputAvailable result={p.output} /> : null;
+    case "output-error":
+      return (
+        <ToolOutputError
+          url={p.input?.url}
+          message={p.errorText ?? "The tool failed without a message."}
+        />
+      );
+  }
+}
 
 function textOf(message: UIMessage): string {
   return message.parts
@@ -72,10 +110,19 @@ export function Chat() {
                     </span>
                     {isUser ? (
                       <p className="whitespace-pre-wrap">{body}</p>
-                    ) : body.length > 0 ? (
-                      <StreamingMarkdown text={body} />
                     ) : (
-                      <ThinkingDots />
+                      <>
+                        {message.parts.map((part, i) =>
+                          part.type.startsWith("tool-") ? (
+                            <ToolPart key={i} part={part} />
+                          ) : null,
+                        )}
+                        {body.length > 0 ? (
+                          <StreamingMarkdown text={body} />
+                        ) : !message.parts.some((p) => p.type.startsWith("tool-")) ? (
+                          <ThinkingDots />
+                        ) : null}
+                      </>
                     )}
                   </div>
                 </li>
