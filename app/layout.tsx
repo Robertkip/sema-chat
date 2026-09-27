@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { SiteNav } from "@/components/site-nav";
 import "./globals.css";
 import { Geist } from "next/font/google";
@@ -9,6 +9,17 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 export const metadata: Metadata = {
   title: { default: "Sema", template: "%s · Sema" },
   description: "A streaming AI chat product.",
+};
+
+/**
+ * `interactiveWidget: "resizes-content"` is the mobile Safari fix: without it
+ * the on-screen keyboard overlays the viewport instead of shrinking it, and a
+ * bottom-pinned composer ends up underneath the keyboard.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

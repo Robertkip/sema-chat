@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { StreamingMarkdown } from "./streaming-markdown";
@@ -50,21 +51,49 @@ function textOf(message: UIMessage): string {
     .join("");
 }
 
+const SUGGESTIONS = [
+  "Inspect https://example.com",
+  "Explain a ResizeObserver in two sentences",
+  "What makes a good error message?",
+];
+
 export function Chat() {
+  // ?fail= is forwarded to the route so each failure state is reproducible
+  // from a URL. See lib/sabotage.ts.
+  const failMode = useSearchParams().get("fail");
+  const api = failMode ? `/api/chat?fail=${encodeURIComponent(failMode)}` : "/api/chat";
+
   const { messages, sendMessage, status, stop, error, regenerate } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: new DefaultChatTransport({ api }),
   });
   const [input, setInput] = useState("");
+  const [retrying, setRetrying] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const { containerRef, contentRef, pinned, scrollToBottom } = useStickToBottom();
 
   const busy = status === "submitted" || status === "streaming";
   const last = messages.at(-1);
+  // Name the exact message the retry will resend, not "the conversation".
+  const lastUserText = textOf(
+    [...messages].reverse().find((m) => m.role === "user") ?? ({ parts: [] } as never),
+  ).slice(0, 80);
 
   // The indicator is a handoff, not a swap: it shows only while we are waiting
   // for the *first* token. Once the assistant message exists and has any text,
   // the text itself takes over in the same slot, so nothing blanks between them.
   const awaitingFirstToken =
     busy && (last?.role !== "assistant" || textOf(last).length === 0);
+
+  // Announce a finished reply, then clear so the bubble is its only copy.
+  useEffect(() => {
+    if (status !== "ready" || last?.role !== "assistant") return;
+    const text = textOf(last);
+    if (!text) return;
+    setAnnouncement(text);
+    const timer = setTimeout(() => setAnnouncement(""), 1000);
+    return () => clearTimeout(timer);
+  }, [status, last]);
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -77,14 +106,30 @@ export function Chat() {
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
-      <div ref={containerRef} className="relative flex-1 overflow-y-auto">
+      <div ref={containerRef} className="relative flex-1 overflow-y-auto overscroll-contain">
         <div ref={contentRef} className="mx-auto w-full max-w-3xl px-4 py-6">
           {messages.length === 0 && !busy && (
-            <div className="rounded-panel border border-dashed border-line p-8 text-center">
+            <div className="rounded-panel border border-dashed border-line p-6 sm:p-8">
               <p className="font-medium">Start a conversation</p>
               <p className="mt-1 text-sm text-ink-muted">
-                Ask Sema anything. Responses stream as they are generated.
+                Replies stream as they are generated. Try one of these:
               </p>
+              <ul className="mt-4 flex flex-col gap-2">
+                {SUGGESTIONS.map((s) => (
+                  <li key={s}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInput(s);
+                        inputRef.current?.focus();
+                      }}
+                      className="w-full rounded-control border border-line bg-surface-raised px-3 py-2 text-left text-sm transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    >
+                      {s}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
@@ -141,23 +186,46 @@ export function Chat() {
           </ol>
 
           {error && (
-            <div role="alert" className="mt-5 rounded-panel border border-danger/40 p-4">
-              <p className="text-sm text-danger">
-                Something went wrong generating that reply.
+            <div
+              role="alert"
+              className="animate-tool-in mt-5 rounded-panel border border-danger/40 bg-surface-raised p-4"
+            >
+              <p className="text-sm font-medium text-danger">That reply did not finish.</p>
+              <p className="mt-1 text-sm text-ink-muted">
+                {error.message && error.message !== "An error occurred."
+                  ? error.message
+                  : "The connection to the model failed."}
               </p>
+              {lastUserText && (
+                <p className="mt-3 truncate rounded-control bg-surface-sunken px-3 py-2 text-xs text-ink-muted">
+                  Will retry: “{lastUserText}”
+                </p>
+              )}
               <button
                 type="button"
-                onClick={() => void regenerate()}
-                className="mt-3 rounded-control border border-line px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                disabled={retrying || busy}
+                onClick={async () => {
+                  // Guarded so a second click cannot fire a second request.
+                  if (retrying) return;
+                  setRetrying(true);
+                  try {
+                    await regenerate();
+                  } finally {
+                    setRetrying(false);
+                  }
+                }}
+                className="mt-3 rounded-control border border-line px-3 py-1.5 text-sm disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
-                Retry
+                {retrying ? "Retrying…" : "Retry this message"}
               </button>
             </div>
           )}
 
-          {/* Screen readers get the finished reply, not every token. */}
-          <p aria-live="polite" className="sr-only">
-            {status === "ready" && last?.role === "assistant" ? textOf(last) : ""}
+          {/* Screen readers get the finished reply once, not every token.
+              The region is cleared afterwards so the text is not duplicated in
+              the reading order — it already exists in the message bubble. */}
+          <p aria-live="polite" aria-atomic="true" className="sr-only">
+            {announcement}
           </p>
         </div>
       </div>
@@ -174,13 +242,14 @@ export function Chat() {
         </div>
       )}
 
-      <div className="border-t border-line bg-surface">
+      <div className="border-t border-line bg-surface pb-[env(safe-area-inset-bottom)]">
         <form onSubmit={onSubmit} className="mx-auto flex w-full max-w-3xl gap-2 p-3">
           <label htmlFor="chat-input" className="sr-only">
             Message Sema
           </label>
           <input
             id="chat-input"
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Message Sema…"

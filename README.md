@@ -63,6 +63,60 @@ This repo is built incrementally across the Front-end AI Engineering track:
 
 MIT — see [LICENSE](LICENSE).
 
+
+## Failure states
+
+The gap between a demo and a product is what happens when things go wrong, so
+every failure below is reproducible from a URL rather than described. `?fail=`
+is forwarded from the chat page to the route; see [`lib/sabotage.ts`](lib/sabotage.ts).
+Each mode only degrades the caller's own request.
+
+| Sabotage | How to trigger | What you should see |
+|---|---|---|
+| Happy path | `/chat` | 17 token frames, reply streams in |
+| Fails before any token | `/chat?fail=start` | HTTP 503, designed error, retry names the message |
+| Dies mid-stream | `/chat?fail=midstream` | partial reply **stays on screen**, error below it, retry |
+| Rate limited | `/chat?fail=rate-limit` | HTTP 429 with `retry-after`, designed error |
+| Slow first token | `/chat?fail=slow` | thinking indicator holds for 3s, then hands off |
+| Tool failure | ask it to inspect a host that does not exist | tool's own `output-error` card, not a crash |
+| Malformed request | `POST /api/chat` with `not json` | HTTP 400, `{"error":"Invalid JSON body"}` |
+| Missing field | `POST /api/chat` with `{"foo":1}` | HTTP 400, names the expected shape |
+
+Verified in that order against a running server. Console is clean on the happy
+path.
+
+### Design decisions
+
+**The retry names what it will retry.** "Retry" alone is ambiguous when a
+conversation has ten turns, so the error card shows the exact message that will
+be resent, truncated to 80 characters. The button guards against a double click
+with a `retrying` flag rather than relying on the disabled attribute alone.
+
+**A mid-stream failure keeps the partial reply.** The injected failure enqueues
+an `error` *part* rather than calling `controller.error()`. Erroring the stream
+aborts the pipe, so the failure escapes as a rejection on the response body and
+`onError` never runs — the client gets a broken socket instead of a designed
+error. An error part stays inside the protocol and becomes a frame the UI can
+render, with everything already streamed still on screen.
+
+**Empty states are onboarding.** The first-run state offers three click-to-fill
+prompts that put text in the composer and focus it, rather than saying "no
+messages yet" and stopping.
+
+**Skeletons match the real layout.** The Suspense fallback reuses the chat's
+container, bubble geometry and composer height, so the handoff to real content
+does not shift anything.
+
+### Mobile Safari
+
+- `interactiveWidget: "resizes-content"` in the viewport export, so the
+  on-screen keyboard shrinks the viewport instead of overlaying the composer.
+- `100dvh` rather than `100vh`, so the toolbar collapsing does not clip the page.
+- `overscroll-contain` on the scroll container, so rubber-band scrolling does
+  not fight the auto-scroll pin.
+- `pb-[env(safe-area-inset-bottom)]` on the composer for the home indicator.
+- 16px input font, below which iOS zooms the page on focus.
+
 ## Tool contract
 
 The chat route exposes one server-side tool. Definition:

@@ -8,6 +8,12 @@ import {
 } from "ai";
 import { MAX_OUTPUT_TOKENS, SYSTEM_PROMPT, resolveModel } from "./chat-config";
 import { InspectError, inspectUrl, inspectUrlInput } from "./tools/inspect-url";
+import {
+  InjectedFailure,
+  delayStream,
+  failAfter,
+  type FailureMode,
+} from "./sabotage";
 
 /**
  * Server-side tools. Defined here rather than inline in the route so the
@@ -32,11 +38,16 @@ export async function createChatStream({
   messages,
   model,
   abortSignal,
+  failureMode = null,
 }: {
   messages: UIMessage[];
   model?: LanguageModel;
   abortSignal?: AbortSignal;
+  failureMode?: FailureMode | null;
 }): Promise<Response> {
+  if (failureMode === "start") {
+    throw new InjectedFailure("The model could not be reached.");
+  }
   const result = streamText({
     model: model ?? resolveModel(),
     instructions: SYSTEM_PROMPT,
@@ -48,9 +59,14 @@ export async function createChatStream({
     abortSignal,
   });
 
+  let stream = result.stream;
+  if (failureMode === "midstream")
+    stream = stream.pipeThrough(failAfter(6)) as typeof stream;
+  if (failureMode === "slow") stream = stream.pipeThrough(delayStream(3000));
+
   return createUIMessageStreamResponse({
     stream: toUIMessageStream({
-      stream: result.stream,
+      stream,
       /**
        * The SDK masks every error as "An error occurred." by default so server
        * internals never reach the browser. That default is right, but it also
@@ -59,7 +75,9 @@ export async function createChatStream({
        * an unexpected fault and stays masked.
        */
       onError: (error) =>
-        error instanceof InspectError ? error.message : "Something went wrong.",
+        error instanceof InspectError || error instanceof InjectedFailure
+          ? error.message
+          : "Something went wrong.",
     }),
   });
 }
