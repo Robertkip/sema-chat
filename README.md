@@ -65,6 +65,56 @@ MIT — see [LICENSE](LICENSE).
 
 
 
+
+## Testing
+
+```bash
+npm test          # 74 unit and component tests (Vitest + React Testing Library)
+npm run test:e2e  # 3 end-to-end tests (Playwright, real build + real route)
+npm run test:all  # both
+```
+
+CI runs typecheck, unit tests and a production build on every push, then the
+Playwright suite: [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+| File | Covers |
+|---|---|
+| `chat-component.test.tsx` | the chat across empty, pending, streaming and error states |
+| `chat-stream.test.ts` | the stream protocol — token-by-token frames, abort, multi-turn |
+| `failure-states.test.ts` | sabotage: mid-stream death, fail-before-first-token |
+| `tool-result.test.tsx` | all four tool lifecycle states as components |
+| `inspect-url.test.ts` | the tool, including four failure paths |
+| `settings-form.test.tsx` | the validated form |
+| `playground-a11y.test.tsx` | dialog, tabs, disclosure from the keyboard |
+| `stateful-button.test.tsx` | button lifecycle and interruption |
+| `streaming-markdown.test.ts` | every prefix of a stream renders safely |
+
+### Principles
+
+**Queried by role and label, never by test ID or class.** There is not one
+`data-testid` in the suite, so renaming a CSS class cannot break a test — but
+removing an accessible name will, which is the right trade.
+
+**The real API is never called.** Component tests generate their SSE bytes with
+the same `createChatStream` the route uses, backed by `MockLanguageModelV4`.
+The component consumes exactly what the server produces, so a change to the
+wire format fails a test rather than reaching production.
+
+**jsdom gaps are stubbed in setup, not in the components.** `ResizeObserver`
+and `Element.scrollTo` are absent from jsdom and used by the scroll hook. They
+are polyfilled in `test/setup.ts` so no production file carries a test-only
+branch.
+
+### Two things worth recording
+
+Vitest's default `include` picks up `e2e/*.spec.ts`, which fails to run under
+Playwright's runner and turns the suite red while reporting zero failed tests.
+The config now scopes `include` to `test/`.
+
+Next.js injects its own `role="alert"` route announcer, so `getByRole("alert")`
+is ambiguous in Playwright's strict mode. The e2e test filters by the error
+copy instead.
+
 ## Button motion
 
 [`components/stateful-button.tsx`](components/stateful-button.tsx) · demo at

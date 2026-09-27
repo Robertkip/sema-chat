@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:all": "vitest run && playwright test"
   },
   "dependencies": {
     "@ai-sdk/mistral": "^4.0.52",
@@ -26,6 +28,7 @@
   },
   "devDependencies": {
     "@hookform/resolvers": "^5.9.1",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
