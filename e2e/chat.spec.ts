@@ -46,13 +46,51 @@ test.describe("primary flow", () => {
     await expect(page.getByRole("button", { name: /Retry this message/ })).toBeVisible();
   });
 
-  test("the composer is reachable and usable by keyboard alone", async ({ page }) => {
+  test("the whole primary flow is completable by keyboard alone", async ({ page }) => {
     await page.goto("/chat");
-    await page.keyboard.press("Tab"); // skip link
+
+    // Tab from the top and assert the skip link is the first stop — the
+    // keyboard entry point for the whole page.
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
+
+    // Keep tabbing until focus lands on the composer, without ever touching
+    // the mouse. A bounded loop so a regression fails rather than hangs.
     const composer = page.getByLabel("Message Sema");
-    await composer.focus();
-    await composer.type("hello from the keyboard");
-    await expect(composer).toHaveValue("hello from the keyboard");
-    await expect(page.getByRole("button", { name: "Send" })).toBeEnabled();
+    for (let i = 0; i < 25 && !(await composer.evaluate((el) => el === document.activeElement)); i++) {
+      await page.keyboard.press("Tab");
+    }
+    await expect(composer).toBeFocused();
+
+    // Type and submit with Enter — no click anywhere in this test.
+    await page.keyboard.type("say hello briefly");
+    await page.keyboard.press("Enter");
+
+    await expect(page.getByText("say hello briefly").first()).toBeVisible();
+
+    // A reply arrives and the composer becomes usable again.
+    await expect(page.getByRole("button", { name: "Send" })).toBeVisible({ timeout: 30_000 });
+    await expect(composer).toHaveValue("");
+  });
+
+  test("every interactive control on the chat page has an accessible name", async ({ page }) => {
+    await page.goto("/chat");
+    const controls = page.locator("button, a[href], input, select, textarea");
+    const count = await controls.count();
+    expect(count).toBeGreaterThan(0);
+    for (let i = 0; i < count; i++) {
+      const el = controls.nth(i);
+      const name = (await el.evaluate((n) => {
+        const e = n as HTMLElement;
+        return (
+          e.getAttribute("aria-label") ??
+          e.getAttribute("title") ??
+          (e.id ? document.querySelector(`label[for="${e.id}"]`)?.textContent : null) ??
+          e.textContent ??
+          ""
+        );
+      })) as string;
+      expect(name.trim(), `control ${i} has no accessible name`).not.toBe("");
+    }
   });
 });
