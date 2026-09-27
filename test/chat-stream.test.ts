@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MockLanguageModelV4, simulateReadableStream } from "ai/test";
+import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import type { UIMessage } from "ai";
 import { createChatStream } from "@/lib/chat-stream";
 
@@ -9,22 +10,24 @@ const userMessage: UIMessage[] = [
 
 /** A model that emits text in separate chunks, like a real stream. */
 function chunkedModel(chunks: string[], delayMs = 0) {
+  const parts: LanguageModelV4StreamPart[] = [
+    { type: "stream-start", warnings: [] },
+    { type: "text-start", id: "t0" },
+    ...chunks.map((delta) => ({ type: "text-delta" as const, id: "t0", delta })),
+    { type: "text-end", id: "t0" },
+    {
+      type: "finish",
+      finishReason: { unified: "stop" as const, raw: "stop" },
+      usage: {
+        inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+        outputTokens: { total: chunks.length, text: chunks.length, reasoning: 0 },
+      },
+    },
+  ];
+
   return new MockLanguageModelV4({
     doStream: async () => ({
-      stream: simulateReadableStream({
-        chunkDelayInMs: delayMs,
-        chunks: [
-          { type: "stream-start", warnings: [] },
-          { type: "text-start", id: "t0" },
-          ...chunks.map((c) => ({ type: "text-delta" as const, id: "t0", delta: c })),
-          { type: "text-end", id: "t0" },
-          {
-            type: "finish" as const,
-            finishReason: "stop" as const,
-            usage: { inputTokens: 1, outputTokens: chunks.length, totalTokens: 1 + chunks.length },
-          },
-        ],
-      }),
+      stream: simulateReadableStream({ chunkDelayInMs: delayMs, chunks: parts }),
     }),
   });
 }

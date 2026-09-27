@@ -5,28 +5,38 @@
  * so keep it the single place any model behaviour is decided.
  *
  * ── Provider ────────────────────────────────────────────────────────────────
- * Requests go through the Vercel AI Gateway, which is the AI SDK's default
- * provider — a bare `"anthropic/..."` string resolves to it with no extra
- * imports. Auth resolves in this order:
+ * Mistral, via the AI SDK's Mistral provider. Two ways to authenticate:
  *
- *   1. On Vercel: the deployment's OIDC token. No API key exists anywhere.
- *   2. Locally:   AI_GATEWAY_API_KEY, or a VERCEL_OIDC_TOKEN pulled by
- *                 `vercel env pull` (already in .env.local after `vercel link`).
+ *   1. MISTRAL_API_KEY  → talk to Mistral directly. Used when the variable is
+ *                         set, which is the normal case locally and on Vercel.
+ *   2. no key           → fall back to a bare "mistral/..." model string, which
+ *                         the AI SDK resolves through the Vercel AI Gateway
+ *                         (OIDC on a Vercel deployment, no key needed).
  *
- * This is why no ANTHROPIC_API_KEY is required. The credential is read only in
- * this module's server-side consumers — it is never sent to the browser.
+ * The gateway route is a genuine fallback rather than the default because the
+ * gateway answers `customer_verification_required` (HTTP 403) until a card is
+ * on file, even when OIDC authentication itself succeeds.
+ *
+ * The key is read here and only here, in a module that runs on the server.
+ * `app/chat/chat.tsx` never imports this file, so nothing reaches the browser.
  *
  * ── Model ───────────────────────────────────────────────────────────────────
- * Change MODEL_ID and nothing else. Verified present on the gateway on
- * 2026-09-27; `anthropic/claude-opus-5.5` and `anthropic/claude-sonnet-5` are
- * also live if you want more capability or lower cost respectively.
+ * Change MODEL_ID and nothing else. Verified against this account on
+ * 2026-09-27 by calling each candidate: `ministral-3b-latest` and
+ * `ministral-8b-latest` answer, while `mistral-small-latest` and
+ * `mistral-medium-latest` return HTTP 429 "Rate limit exceeded" (code 1300)
+ * on the current plan. Move up to `mistral-medium-latest` once the account
+ * is upgraded — it is a one-word change here.
  */
 
-/** The one line to edit when changing models (gateway form). */
-export const MODEL_ID = "anthropic/claude-opus-5";
+import { createMistral } from "@ai-sdk/mistral";
+import type { LanguageModel } from "ai";
 
-/** Same model, named the way the direct Anthropic provider expects it. */
-export const DIRECT_MODEL_ID = "claude-opus-5";
+/** The one line to edit when changing models. */
+export const MODEL_ID = "ministral-8b-latest";
+
+/** Nearest equivalent addressed through the Vercel AI Gateway. */
+export const GATEWAY_MODEL_ID = "mistral/ministral-8b";
 
 /**
  * Hard ceiling on a single reply. Generous because we stream — the usual
@@ -59,26 +69,9 @@ Format with Markdown when it genuinely helps — code in fenced blocks with a
 language tag, lists for genuinely enumerable things. Do not format for its own
 sake; most answers are just prose.`;
 
-import { createAnthropic } from "@ai-sdk/anthropic";
-import type { LanguageModel } from "ai";
-
-/**
- * Pick a provider from whichever credential the environment actually has.
- *
- * Preferring a direct key when one is present means the app is not held
- * hostage by AI Gateway billing state: the gateway returns
- * `customer_verification_required` (HTTP 403) until a card is on file, even
- * though OIDC authentication itself succeeds.
- *
- *   ANTHROPIC_API_KEY set  → talk to Anthropic directly.
- *   otherwise              → a bare model string, which the AI SDK resolves
- *                            through the Vercel AI Gateway (OIDC on Vercel).
- *
- * Either way the credential is read in a server module only. Nothing here is
- * bundled into the client — `app/chat/chat.tsx` never imports this file.
- */
+/** Pick a provider from whichever credential the environment actually has. */
 export function resolveModel(): LanguageModel {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (apiKey) return createAnthropic({ apiKey })(DIRECT_MODEL_ID);
-  return MODEL_ID;
+  const apiKey = process.env.MISTRAL_API_KEY;
+  if (apiKey) return createMistral({ apiKey })(MODEL_ID);
+  return GATEWAY_MODEL_ID;
 }
