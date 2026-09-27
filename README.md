@@ -29,13 +29,20 @@ lands in FE-06.
 
 ## Getting started
 
+**Prerequisites:** Node.js 20 LTS or newer, npm 10+, and an Anthropic API key.
+
 ```bash
+git clone https://github.com/Robertkip/sema-chat.git
+cd sema-chat
 npm install
-cp .env.example .env.local   # add your ANTHROPIC_API_KEY
+cp .env.example .env.local   # then add your ANTHROPIC_API_KEY
 npm run dev
 ```
 
-Then open http://localhost:3000.
+Then open <http://localhost:3000>.
+
+> The app skeleton lands in FE-05. Until then `npm run dev` has nothing to serve —
+> the steps above are the contract the skeleton will satisfy.
 
 ## Roadmap
 
