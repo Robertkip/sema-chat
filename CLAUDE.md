@@ -67,6 +67,33 @@ An unhandled rejection reaching the console is a bug. This is graded in FE-08.
 API keys live in `.env.local`, which is gitignored. Never commit a real key.
 `.env.example` holds the variable names with empty values.
 
+## Form rules
+
+Learned the hard way in the FE-04 drill; see [WORKFLOW.md](WORKFLOW.md). Each of these
+failed a real review, so each one can fail a review again.
+
+1. **Forms use `react-hook-form` + `zod` through `zodResolver`.** No hand-rolled
+   `useState` validation, no validation logic inside the submit handler. The schema is
+   the single source of truth and lives in `lib/`.
+
+2. **Every `<button>` inside a `<form>` declares an explicit `type`.** A button with no
+   `type` defaults to `submit`. A Cancel button that submits the form is the exact bug
+   this rule exists to prevent.
+
+3. **Numeric inputs parse through `z.coerce.number()` before any comparison.** A number
+   input hands you a string, and `"10" > "2"` is `false`. Never apply a relational
+   operator to `e.target.value`.
+
+4. **Every control has an `id` from `useId()` and a matching `<label htmlFor>`.** Tests
+   query controls with `getByLabelText`, so a missing association fails the suite rather
+   than silently shipping an unnamed field. `placeholder` is never a label.
+
+5. **Inputs holding secrets render as `type="password"`** with an explicit
+   `aria-pressed` reveal toggle.
+
+6. **Every async form reports status through a `role="status"` `aria-live="polite"`
+   region.** Never `alert()`.
+
 ## Definition of done
 
 - [ ] `npm run build` passes clean
