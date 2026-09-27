@@ -77,6 +77,8 @@ npm run test:all  # both
 CI runs typecheck, unit tests and a production build on every push, then the
 Playwright suite: [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
+![CI passing: both jobs green](docs/ci-passing.png)
+
 | File | Covers |
 |---|---|
 | `chat-component.test.tsx` | the chat across empty, pending, streaming and error states |
