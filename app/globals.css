@@ -1,19 +1,69 @@
 @import "tailwindcss";
 
+/* ---- Base design tokens -------------------------------------------------
+   Raw values live on :root so they can flip with the colour scheme; @theme
+   maps them to Tailwind utilities (bg-surface, text-ink, rounded-control...). */
+
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
+  --surface: #ffffff;
+  --surface-raised: #f7f7f8;
+  --surface-sunken: #efeff1;
+  --ink: #0a0a0a;
+  --ink-muted: #5c5c66;
+  --line: #e2e2e6;
+  --accent: #2563eb;
+  --accent-ink: #ffffff;
+  --danger: #b42318;
+  --success: #067647;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --surface: #0a0a0b;
+    --surface-raised: #17171a;
+    --surface-sunken: #1f1f24;
+    --ink: #ededed;
+    --ink-muted: #a1a1aa;
+    --line: #2a2a30;
+    --accent: #60a5fa;
+    --accent-ink: #0a0a0b;
+    --danger: #f87171;
+    --success: #4ade80;
   }
 }
 
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+
+  --radius-control: 0.5rem;
+  --radius-panel: 0.875rem;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* Respect a reduced-motion preference everywhere. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
