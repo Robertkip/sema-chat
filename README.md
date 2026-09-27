@@ -67,6 +67,46 @@ MIT — see [LICENSE](LICENSE).
 
 
 
+
+## Shader hero
+
+The home page hero is a GLSL fragment shader on raw WebGL.
+Source: [`components/shader/aurora.frag.ts`](components/shader/aurora.frag.ts)
+(commented block by block) · renderer:
+[`components/shader/shader-hero.tsx`](components/shader/shader-hero.tsx)
+
+![The shader hero](docs/hero.png)
+
+**No three.js.** The scene is one fullscreen triangle and one fragment shader,
+so an engine would add ~265 KB gzipped to draw what the platform draws in about
+60 lines. The component is roughly 2 KB.
+
+**Uniforms — all three.** `u_resolution` normalises coordinates against the
+short edge so the pattern does not stretch when the window changes shape;
+`u_time` advances the flow; `u_mouse` leans the field toward the cursor,
+clamped small so it reads as a response rather than the image sliding about.
+
+**How it works.** A hash gives repeatable pseudo-randomness, value noise
+smooths it, and fbm stacks four octaves for large shape plus fine detail. The
+key move is *domain warping*: fbm is sampled at a position already displaced by
+another fbm, which is what turns smooth blobs into folded, curtain-like
+structure. A sine across the vertical axis with the warped noise added to its
+phase gives the bands; a tighter power of the same term gives the bright
+leading edge that reads as "aurora" rather than "blue gradient". Grain on top
+breaks up 8-bit banding across the slow gradient.
+
+**Fallback and perf, in one line:** device pixel ratio capped at 1.5, the
+render loop stops both when the tab is hidden and when the hero scrolls out of
+view, and `prefers-reduced-motion` never starts WebGL at all — it gets a CSS
+gradient in the same palette, which doubles as the paint before WebGL
+initialises so there is no flash of empty canvas.
+
+**Contrast is designed, not checked afterwards.** The shader's brightest
+possible pixel would leave white text at 2.17:1, so the scrim is weighted
+toward the bottom where the copy sits rather than applied evenly. Worst case is
+**16.23:1** for the headline and **10.10:1** for the body, while the top of the
+frame stays clear so the aurora is still the thing you look at.
+
 ## 3D scene
 
 [`/scene`](https://sema-chat-pi.vercel.app/scene) · source in [`app/scene/`](app/scene)
