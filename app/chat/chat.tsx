@@ -12,6 +12,7 @@ import {
   ToolOutputError,
 } from "./tool-inspect-url";
 import type { InspectResult } from "@/lib/tools/inspect-url";
+import { StatefulButton } from "@/components/stateful-button";
 import { useStickToBottom } from "./use-stick-to-bottom";
 
 /**
@@ -67,7 +68,6 @@ export function Chat() {
     transport: new DefaultChatTransport({ api }),
   });
   const [input, setInput] = useState("");
-  const [retrying, setRetrying] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { containerRef, contentRef, pinned, scrollToBottom } = useStickToBottom();
@@ -201,23 +201,23 @@ export function Chat() {
                   Will retry: “{lastUserText}”
                 </p>
               )}
-              <button
-                type="button"
-                disabled={retrying || busy}
-                onClick={async () => {
-                  // Guarded so a second click cannot fire a second request.
-                  if (retrying) return;
-                  setRetrying(true);
-                  try {
+              {/* The same component as the Buttons with a Brain demo — the
+                  interruption guard and state choreography come with it. */}
+              <div className="mt-3">
+                <StatefulButton
+                  variant="secondary"
+                  labels={{
+                    idle: "Retry this message",
+                    loading: "Retrying…",
+                    success: "Sent",
+                    error: "Retry this message",
+                  }}
+                  disabled={busy}
+                  onAction={async () => {
                     await regenerate();
-                  } finally {
-                    setRetrying(false);
-                  }
-                }}
-                className="mt-3 rounded-control border border-line px-3 py-1.5 text-sm disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
-                {retrying ? "Retrying…" : "Retry this message"}
-              </button>
+                  }}
+                />
+              </div>
             </div>
           )}
 

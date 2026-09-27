@@ -64,6 +64,62 @@ This repo is built incrementally across the Front-end AI Engineering track:
 MIT — see [LICENSE](LICENSE).
 
 
+
+## Button motion
+
+[`components/stateful-button.tsx`](components/stateful-button.tsx) · demo at
+[`/motion`](https://sema-chat-pi.vercel.app/motion)
+
+A button that communicates its own lifecycle:
+
+```
+idle ──click──▶ loading ──resolve──▶ success ──1.2s──▶ idle
+                   │
+                   └────reject────▶ error ──click──▶ loading
+```
+
+hover, focus-visible and disabled sit on top of that, giving seven distinct
+treatments.
+
+### Durations, and why
+
+| Duration | Where | Reasoning |
+|---|---|---|
+| 90ms | press | Below ~100ms reads as instant. Slower feels spongy. |
+| 180ms | label swap | Long enough to see the direction the label moved, short enough that nobody waits for it. |
+| 400ms | error shake | One pass. A repeating shake reads as broken; a single pass reads as "that was wrong". |
+| 1200ms | success hold | Long enough to register, then it returns to idle rather than lingering as clutter. |
+
+Entering motion uses `ease-out` so it decelerates into place; leaving uses
+`ease-in` so it accelerates away.
+
+### The width problem
+
+The obvious reading of "the button resizes to fit the new label" costs a layout
+pass every frame, which is the one thing the brief rules out. So the button is
+sized once by an invisible sizer holding the longest label, and every visible
+label is absolutely positioned inside it. Labels move with `transform` and
+`opacity` only — both compositor properties — and the button's box never
+changes, so nothing around it reflows either.
+
+### Interruption
+
+Every run takes an incrementing token. A run whose token is stale when it
+settles does not touch state, so a slow first request cannot land its result on
+top of a newer one. Clicks during `loading` are ignored rather than queued.
+Both are covered by tests.
+
+### Reduced motion
+
+Movement is removed under `prefers-reduced-motion`; colour and label changes
+remain. Feedback is never removed, only the motion carrying it.
+
+### Reuse
+
+The chat's retry control in [`app/chat/chat.tsx`](app/chat/chat.tsx) is this
+component, not a copy of it — the interruption guard and choreography come with
+it. The `/motion` demo also shows a secondary variant sharing the same timings.
+
 ## Failure states
 
 The gap between a demo and a product is what happens when things go wrong, so
