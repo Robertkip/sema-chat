@@ -1,11 +1,7 @@
-import { PageShell, Placeholder } from "@/components/page-shell";
+import { Chat } from "./chat";
 
 export const metadata = { title: "Chat" };
 
 export default function ChatPage() {
-  return (
-    <PageShell title="Chat" lede="Start a new conversation.">
-      <Placeholder ships="FE-06 — Streaming AI chat interface" />
-    </PageShell>
-  );
+  return <Chat />;
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PageShell } from "@/components/page-shell";
 
 const SCREENS = [
-  { href: "/chat", name: "Chat", note: "Streaming conversation view", ships: "FE-06" },
+  { href: "/chat", name: "Chat", note: "Streaming conversation view", ships: "FE-06 ✓" },
   { href: "/history", name: "History", note: "Past conversations", ships: "FE-07" },
   { href: "/settings", name: "Settings", note: "Model and account preferences", ships: "FE-04 ✓" },
   { href: "/health", name: "Health", note: "Runtime and dependency status", ships: "FE-05 ✓" },
